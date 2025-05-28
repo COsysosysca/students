@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Учет студентов - практика</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: Arial, sans-serif; background: #f0f0ff; margin: 0; padding: 20px; }
+    .box { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 16px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    .hidden { display: none; }
+    input, select, button {
+      width: 100%; padding: 10px; margin: 8px 0; border-radius: 8px; border: 1px solid #ccc;
+    }
+    button {
+      background: #a88fff; color: white; border: none; cursor: pointer;
+    }
+    button:hover { background: #8f7be0; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    mark { background: yellow; }
+  </style>
+</head>
+<body>
+
+<div class="box" id="roleSelect">
+  <h2>Выберите вход</h2>
+  <button onclick="selectRole('student')">Вход для студента</button>
+  <button onclick="selectRole('teacher')">Вход для преподавателя</button>
+</div>
+
+<div class="box hidden" id="studentFormBox">
+  <h2>Форма студента</h2>
+  <form id="studentForm">
+    <input type="text" id="fio" placeholder="ФИО СТУДЕНТА" required>
+    <input type="number" id="course" placeholder="КУРС" required>
+    <input type="text" id="group" placeholder="ГРУППА" required>
+    <input type="text" id="base" placeholder="БАЗА ПРАКТИКИ">
+    <input type="text" id="baseAddress" placeholder="АДРЕС БАЗЫ ПРАКТИКИ">
+    <input type="tel" id="basePhone" placeholder="КОНТАКТНЫЙ ТЕЛЕФОН БАЗЫ ПРАКТИКИ">
+    <input type="tel" id="studentPhone" placeholder="КОНТАКТНЫЙ ТЕЛЕФОН СТУДЕНТА">
+    <input type="text" id="orgSupervisor" placeholder="РУКОВОДИТЕЛЬ ПРАКТИКИ ОТ ОРГАНИЗАЦИИ">
+    <input type="text" id="practiceType" placeholder="ВИД ПРАКТИКИ">
+    <button type="submit">Отправить</button>
+  </form>
+</div>
+
+<div class="box hidden" id="teacherLogin">
+  <h2>Вход преподавателя</h2>
+  <input type="text" id="username" placeholder="Фамилия">
+  <input type="password" id="password" placeholder="Пароль">
+  <button onclick="loginTeacher()">Войти</button>
+</div>
+
+<div class="box hidden" id="teacherApp">
+  <h2>Список студентов</h2>
+  <input type="text" id="search" placeholder="Поиск по ФИО" oninput="renderTable()">
+  <table id="studentTable">
+    <thead>
+      <tr>
+        <th>ФИО</th><th>Курс</th><th>Группа</th><th>База</th><th>Адрес</th><th>Тел. базы</th><th>Тел. студента</th><th>Руководитель</th><th>Вид</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<script>
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbx7KaHFC_2Djkrc2ys7l6iDY2Pi2cHCZKRuDuUOKqp1EVCu8PgEKFEhgadFaNpsBWxw_w/exec";
+let students = [];
+
+function selectRole(role) {
+  document.getElementById('roleSelect').classList.add('hidden');
+  document.getElementById(role === 'student' ? 'studentFormBox' : 'teacherLogin').classList.remove('hidden');
+}
+
+function loginTeacher() {
+  const user = document.getElementById('username').value.trim().toLowerCase();
+  const pass = document.getElementById('password').value.trim();
+  if (user === 'федоренко' && pass === '1234') {
+    document.getElementById('teacherLogin').classList.add('hidden');
+    document.getElementById('teacherApp').classList.remove('hidden');
+    fetchStudents();
+  } else {
+    alert('Неверные данные!');
+  }
+}
+
+document.getElementById("studentForm")?.addEventListener("submit", function(e) {
+  e.preventDefault();
+  const student = {
+    "ФИО": document.getElementById("fio").value.trim(),
+    "Курс": document.getElementById("course").value.trim(),
+    "Группа": document.getElementById("group").value.trim(),
+    "База": document.getElementById("base").value.trim(),
+    "Адрес": document.getElementById("baseAddress").value.trim(),
+    "Тел. базы": document.getElementById("basePhone").value.trim(),
+    "Тел. студента": document.getElementById("studentPhone").value.trim(),
+    "Руководитель": document.getElementById("orgSupervisor").value.trim(),
+    "Вид практики": document.getElementById("practiceType").value.trim()
+  };
+  fetch(SHEET_URL, {
+    method: "POST",
+    body: JSON.stringify(student),
+    headers: { "Content-Type": "application/json" }
+  })
+  .then(r => r.text())
+  .then(txt => {
+    if (txt === "OK") {
+      document.getElementById("studentFormBox").innerHTML = "<p>Спасибо! Ваши данные отправлены.</p>";
+    } else {
+      alert("Ошибка при отправке: " + txt);
+    }
+  });
+});
+
+function fetchStudents() {
+  fetch(SHEET_URL)
+    .then(r => r.json())
+    .then(data => {
+      students = data;
+      renderTable();
+    });
+}
+
+function renderTable() {
+  const search = document.getElementById("search").value.trim().toLowerCase();
+  const tbody = document.querySelector("#studentTable tbody");
+  tbody.innerHTML = "";
+  students.forEach(s => {
+    if (search && !s["ФИО"].toLowerCase().includes(search)) return;
+    const row = tbody.insertRow();
+    ["ФИО","Курс","Группа","База","Адрес","Тел. базы","Тел. студента","Руководитель","Вид практики"].forEach(key => {
+      const cell = row.insertCell();
+      cell.textContent = s[key] || "";
+    });
+  });
+}
+</script>
+
+</body>
+</html>
