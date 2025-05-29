@@ -1,3 +1,4 @@
+Тося, [29.05.2025 16:01]
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -54,31 +55,6 @@
 <div class="box hidden" id="teacherApp">
   <h2>Список студентов</h2>
   <input type="text" id="search" placeholder="Поиск по ФИО" oninput="renderTable()">
-  <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-  <select id="filterCourse" onchange="renderTable()">
-    <option value="">Все курсы</option>
-  </select>
-  <select id="filterGroup" onchange="renderTable()">
-    <option value="">Все группы</option>
-  </select>
-  <select id="filterPractice" onchange="renderTable()">
-    <option value="">Все виды практики</option>
-  </select>
-</div>
-
-<h3>Добавить студента</h3>
-<form id="teacherAddForm">
-  <input type="text" id="t_fio" placeholder="ФИО" required>
-  <input type="number" id="t_course" placeholder="Курс" required>
-  <input type="text" id="t_group" placeholder="Группа" required>
-  <input type="text" id="t_base" placeholder="База практики">
-  <input type="text" id="t_baseAddress" placeholder="Адрес базы">
-  <input type="tel" id="t_basePhone" placeholder="Тел. базы">
-  <input type="tel" id="t_studentPhone" placeholder="Тел. студента">
-  <input type="text" id="t_supervisor" placeholder="Руководитель от организации">
-  <input type="text" id="t_practiceType" placeholder="Вид практики">
-  <button type="submit">Добавить</button>
-</form>
   <table id="studentTable">
     <thead>
       <tr>
@@ -110,6 +86,7 @@ function loginTeacher() {
   }
 }
 
+Тося, [29.05.2025 16:01]
 document.getElementById("studentForm")?.addEventListener("submit", function(e) {
   e.preventDefault();
   const student = {
@@ -147,81 +124,17 @@ function fetchStudents() {
     });
 }
 
-  document.getElementById("teacherAddForm").addEventListener("submit", function(e) {
-  e.preventDefault();
-  const student = {
-    "ФИО": document.getElementById("t_fio").value.trim(),
-    "Курс": document.getElementById("t_course").value.trim(),
-    "Группа": document.getElementById("t_group").value.trim(),
-    "База": document.getElementById("t_base").value.trim(),
-    "Адрес": document.getElementById("t_baseAddress").value.trim(),
-    "Тел. базы": document.getElementById("t_basePhone").value.trim(),
-    "Тел. студента": document.getElementById("t_studentPhone").value.trim(),
-    "Руководитель": document.getElementById("t_supervisor").value.trim(),
-    "Вид практики": document.getElementById("t_practiceType").value.trim()
-  };
-  fetch(SHEET_URL, {
-    method: "POST",
-    body: JSON.stringify(student),
-    headers: { "Content-Type": "application/json" }
-  })
-  .then(r => r.text())
-  .then(txt => {
-    if (txt === "OK") {
-      alert("Студент добавлен!");
-      fetchStudents(); // обновим таблицу
-      document.getElementById("teacherAddForm").reset();
-    } else {
-      alert("Ошибка: " + txt);
-    }
-  });
-});
-
 function renderTable() {
   const search = document.getElementById("search").value.trim().toLowerCase();
-  const courseFilter = document.getElementById("filterCourse").value;
-  const groupFilter = document.getElementById("filterGroup").value;
-  const practiceFilter = document.getElementById("filterPractice").value;
-
   const tbody = document.querySelector("#studentTable tbody");
   tbody.innerHTML = "";
-
-  const courses = new Set();
-  const groups = new Set();
-  const practices = new Set();
-
   students.forEach(s => {
     if (search && !s["ФИО"].toLowerCase().includes(search)) return;
-    if (courseFilter && s["Курс"] !== courseFilter) return;
-    if (groupFilter && s["Группа"] !== groupFilter) return;
-    if (practiceFilter && s["Вид практики"] !== practiceFilter) return;
-
     const row = tbody.insertRow();
     ["ФИО","Курс","Группа","База","Адрес","Тел. базы","Тел. студента","Руководитель","Вид практики"].forEach(key => {
       const cell = row.insertCell();
       cell.textContent = s[key] || "";
     });
-
-    courses.add(s["Курс"]);
-    groups.add(s["Группа"]);
-    practices.add(s["Вид практики"]);
-  });
-
-  populateSelect("filterCourse", courses);
-  populateSelect("filterGroup", groups);
-  populateSelect("filterPractice", practices);
-}
-
-function populateSelect(id, valuesSet) {
-  const select = document.getElementById(id);
-  const current = select.value;
-  select.innerHTML = '<option value="">Все</option>';
-  Array.from(valuesSet).sort().forEach(v => {
-    const opt = document.createElement("option");
-    opt.value = v;
-    opt.textContent = v;
-    if (v === current) opt.selected = true;
-    select.appendChild(opt);
   });
 }
 </script>
